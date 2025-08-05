@@ -1,0 +1,1 @@
+   count = self.calculate_all_moves(depth - 1, next_colour, screen)

@@ -1,1 +1,1 @@
-w_background(screen)
+    # self.next = "black"
