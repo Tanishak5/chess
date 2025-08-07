@@ -1,1 +1,1 @@
-    # self.next = "black"
+oard.calc_moves(piece, clicked_row, clicked_col, bool=True)

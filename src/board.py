@@ -13,6 +13,7 @@ class Board:
         self._add_pieces("black")
         self.winner = None
 
+
     def return_king_pos(self, colour):
         king_pos = None
         for row in range(ROWS):
@@ -55,22 +56,74 @@ class Board:
     def castling(self, initial, final):
         return abs(initial.cols - final.cols) == 2
 
+    def can_attack(self, r, c, row, cols):
+        
+        dir_r = row - r
+        dir_c = cols - c
+
+        attacker = self.squares[r][c].piece
+        if not attacker:
+            return False
+
+        # Don't attack your own piece
+        target = self.squares[row][cols].piece
+        if target and target.colour == attacker.colour:
+            return False
+
+        if isinstance(attacker, pawn):
+            direction = -1 if attacker.colour == "white" else 1
+            return dir_r == direction and abs(dir_c) == 1
+        elif isinstance(attacker, knight):
+            return (abs(dir_r), abs(dir_c)) in [(2,1), (1,2)]
+        elif isinstance(attacker, bishop):
+            if abs(dir_r) != abs(dir_c): return False
+            steps_r = 1 if dir_r > 0 else -1
+            steps_c = 1 if dir_c > 0 else -1
+            for i in range(1, abs(dir_r)):
+                if self.squares[r + i * steps_r][c + i * steps_c].piece:
+                    return False
+            return True
+        elif isinstance(attacker, rook):
+            if dir_r!=0 and dir_c != 0: return False
+            if dir_r == 0:
+                steps = 1 if dir_c > 0 else -1
+                for i in range(c + steps, cols, steps):
+                    if self.squares[r][i].piece:
+                        return False
+            else:
+                steps = 1 if dir_r > 0 else - 1
+                for i in range(r + steps, row, steps):
+                    if self.squares[i][c].piece:
+                        return False
+            return True
+        elif isinstance(attacker, queen):
+            if abs(dir_r) == abs(dir_c):
+                steps_r = 1 if dir_r > 0 else -1
+                steps_c = 1 if dir_c > 0 else -1
+                for i in range(1, abs(dir_r)):
+                    if self.squares[r + i * steps_r][c + i * steps_c].piece:
+                        return False
+                return True
+                
+         
+            if dir_r == 0 or dir_c == 0:
+                if dir_r == 0:
+                    steps = 1 if dir_c > 0 else -1
+                    for i in range(c + steps, cols, steps):
+                        if self.squares[r][i].piece:
+                            return False
+                else:
+                    steps = 1 if dir_r > 0 else - 1
+                    for i in range(r + steps, row, steps):
+                        if self.squares[i][c].piece:
+                            return False
+                return True
+            
+            else:
+                return False
+    
     def in_check(self,move, piece):
-        # temp_piece = copy.deepcopy(piece)
-        # temp_board = copy.deepcopy(self)
-        # temp_board.move(temp_piece, move)
-        
-        # for row in range(ROWS):
-        #     for col in range(COLUMNS):
-        #         if temp_board.squares[row][col].has_rival_piece(piece.colour):
-        #             p = temp_board.squares[row][col].piece
-        #             temp_board.calc_moves(p, row, col, bool=False)
-        #             for m in p.moves:
-        #                 if isinstance(m.final.piece, king):
-        #                     return True
-        
-        # return False
-        
+
         initial_piece = self.squares[move.initial.row][move.initial.cols].piece
         final_piece = self.squares[move.final.row][move.final.cols].piece
         captured = move.captured
@@ -78,25 +131,47 @@ class Board:
 
         self.squares[move.final.row][move.final.cols].piece = initial_piece
         self.squares[move.initial.row][move.initial.cols].piece = None
+
         king_pos = self.return_king_pos(piece.colour)
-        for row in range(ROWS):
-            for cols in range(COLUMNS):
-                p = self.squares[row][cols].piece
-                if p and p.colour != piece.colour:
-                    p.clear_moves()
-                    self.calc_moves(p, row, cols, False)
-                    for m in p.moves:
-                        if (m.final.row, m.final.cols) == king_pos:
-                            self.squares[move.initial.row][move.initial.cols].piece = initial_piece
-                            self.squares[move.final.row][move.final.cols].piece = final_piece
-                            return True
+        row = king_pos[0]
+        cols = king_pos[1]
+
+        for r in range(ROWS):
+            for c in range(COLUMNS):
+                p = self.squares[r][c].piece
+                if p and p.colour!=piece.colour:
+                    if self.can_attack(r, c, row, cols):
+                        self.squares[move.initial.row][move.initial.cols].piece = initial_piece
+                        self.squares[move.final.row][move.final.cols].piece = final_piece
+                        return True
         self.squares[move.initial.row][move.initial.cols].piece = initial_piece
-        self.squares[move.final.row][move.final.cols].piece = final_piece                   
+        self.squares[move.final.row][move.final.cols].piece = final_piece                
         return False
-                    
-      
 
+       
+        # initial_piece = self.squares[move.initial.row][move.initial.cols].piece
+        # final_piece = self.squares[move.final.row][move.final.cols].piece
+        # captured = move.captured
+        
 
+        # self.squares[move.final.row][move.final.cols].piece = initial_piece
+        # self.squares[move.initial.row][move.initial.cols].piece = None
+        # king_pos = self.return_king_pos(piece.colour)
+        # for row in range(ROWS):
+        #     for cols in range(COLUMNS):
+        #         p = self.squares[row][cols].piece
+        #         if p and p.colour != piece.colour:
+        #             p.clear_moves()
+        #             self.calc_moves(p, row, cols, False)
+        #             for m in p.moves:
+        #                 if (m.final.row, m.final.cols) == king_pos:
+        #                     self.squares[move.initial.row][move.initial.cols].piece = initial_piece
+        #                     self.squares[move.final.row][move.final.cols].piece = final_piece
+        #                     return True
+        # self.squares[move.initial.row][move.initial.cols].piece = initial_piece
+        # self.squares[move.final.row][move.final.cols].piece = final_piece                   
+        # return False
+             
     def check_promotion(self, piece, move):
         if move.final.row == 0 or move.final.row == 7:
             self.squares[move.final.row][move.final.cols].piece = queen(piece.colour)
@@ -128,8 +203,8 @@ class Board:
 
         en_passant_empty = self.squares[final.row][final.cols].is_empty()
         move.captured = self.squares[move.final.row][move.final.cols].piece
-
-
+        
+        move.prev_piece_moved = piece.moved
         #update on board
         self.squares[initial.row][initial.cols].piece = None
         self.squares[final.row][final.cols].piece = piece
@@ -141,6 +216,7 @@ class Board:
                 move.captured = self.squares[initial.row][initial.cols+diff].piece
                 self.squares[initial.row][initial.cols + diff].piece = None
                 self.squares[final.row][final.cols].piece = piece
+                self.set_en_passant(piece, move)
                 
                 move.en_passant = True
     
@@ -162,99 +238,68 @@ class Board:
                     rook_initial_cols = 0
 
                 rook = self.squares[initial.row][rook_initial_cols].piece
+                move.castled_rook = rook
                 self.squares[initial.row][rook_initial_cols].piece = None
                 self.squares[initial.row][rook_final_cols].piece = rook
                 rook.moved = True
 
         #update physically
-    
         piece.moved = True
         piece.clear_moves()
     
-        piece.last_moved_state = piece.moved
+        
         move.move_prev = self.last_move
         self.last_move = move
-        self.set_en_passant(piece, move)
-
-    # def undo_move(self, piece, move):
-        # initial = move.initial
-        # final = move.final
-      
-        # #update on board the baseic move
-        # self.squares[final.row][final.cols].piece =None
-        # self.squares[initial.row][initial.cols].piece = piece
-
-        # piece.moved = piece.last_moved_state
-        
-        # if move.is_promotion:
-        #     self.squares[initial.row][initial.cols].piece = move.promoted_piece
-        # if move.en_passant and move.captured:
-        #     self.squares[final.row][final.cols].piece = None
-        #     captured_row = final.row + 1 if piece.colour == "white" else final.row - 1
-        #     self.squares[captured_row][final.cols].piece = move.captured
-             
-        # if move.castling:
-        #     if final.cols - initial.cols > 0:
-        #         # Kingside
-        #         rook_initial_col = 7
-        #         rook_final_col = final.cols - 1
-        #     else:
-        #         # Queenside
-        #         rook_initial_col = 0
-        #         rook_final_col = final.cols + 1
-
-        #     rook = self.squares[initial.row][rook_final_col].piece
-        #     self.squares[initial.row][rook_final_col].piece = None
-        #     self.squares[initial.row][rook_initial_col].piece = rook
-
-
-        # self.last_move = move.move_prev
+  
     def undo_move(self, piece, move):
         initial = move.initial
         final = move.final
-        
-
         #update on board
+      
         self.squares[initial.row][initial.cols].piece = piece
         self.squares[final.row][final.cols].piece = move.captured
-        captured = self.squares[final.row][final.cols].piece
 
         if isinstance(piece, pawn):
             diff = final.cols - initial.cols
-            if captured == None and diff!=0:
-                colour = "black" if piece.colour == "white" else "white"
-                self.squares[initial.row][initial.cols].piece = piece
+            if move.en_passant and diff!=0:
                 self.squares[final.row][final.cols].piece = None
-                self.squares[initial.row][final.col] = move.captured
+                self.squares[initial.row][final.cols].piece = move.en_passant_target
             else:
-                if self.check_promotion(piece, move):
-                    self.squares[initial.row][initial.cols].piece = pawn(piece.colour)
+                if move.is_promotion:
+                    self.squares[initial.row][initial.cols].piece = piece
+                    self.squares[final.row][final.cols].piece = move.captured
+            
         
 
         if isinstance(piece, king):
-            if self.castling(initial, final):
+            if move.castling:
                 diff = final.cols - initial.cols
                 if diff < 0:
-                    rook_final_cols = final.cols - 1
+                    rook_final_cols = 5
                     rook_initial_cols = 7
                 else:
-                    rook_final_cols = final.cols + 1
+                    rook_final_cols = 3
                     rook_initial_cols = 0
 
-                rook = self.squares[initial.row][rook_final_cols].piece
+                rook = move.castled_rook
                 self.squares[initial.row][rook_final_cols].piece = None
-                self.squares[initial.row][rook_initial_cols].piece = rook
-
-        piece.moved = False
+                self.squares[initial.row][rook_initial_cols].piece = move.castled_rook
+                
+        piece.moved = move.prev_piece_moved
         piece.clear_moves()
-        # Clear the last move
         self.last_move = None
 
 
     def calc_moves(self, piece, row, col, bool=True):
 
         def pawn_moves():
-            steps = 1 if piece.moved else 2
+            if piece.moved == False and piece.colour == "white" and row == 6:
+                steps = 2
+            elif piece.moved == False and piece.colour == "black" and row == 1:
+                steps = 2
+            else:
+                steps = 1
+         
 
             start = row + piece.dir
             end = row +  (piece.dir * (steps + 1))
@@ -262,10 +307,13 @@ class Board:
             for possible_move_row in range(start, end, piece.dir):
                 if Square.in_range(possible_move_row):
                     if self.squares[possible_move_row][col].is_empty():
+    
                         initial = Square(row, col)
                         final = Square(possible_move_row, col)
                         move = Move(initial, final)
                         move.captured = self.squares[final.row][final.cols].piece
+                
+                        
                         if bool:
                             
                             if not self.in_check(move, piece):
@@ -278,7 +326,8 @@ class Board:
                        
                             piece.add_move(move)
                     # blocked
-                    else: break
+                    else:
+                        break
                 # not in range
                 else: break
 
@@ -315,8 +364,8 @@ class Board:
                             initial = Square(row, col)
                             final = Square(fr, col - 1, p)
                             move = Move(initial, final)
-                            move.captured = self.squares[row][col - 1].piece
                             move.en_passant = True
+                            move.en_passant_target = self.squares[row][col - 1].piece
                             
 
                             if bool:
@@ -335,7 +384,7 @@ class Board:
                             initial = Square(row, col)
                             final = Square(fr, col + 1, p)
                             move = Move(initial, final)
-                            move.captured = self.squares[row][col + 1].piece
+                            move.en_passant_target = self.squares[row][col + 1].piece
                             move.en_passant = True
                            
                             
@@ -404,13 +453,14 @@ class Board:
                                 final = Square(row, 2)
                                 moveK = Move(initial, final)
                                 moveK.castling = True
+                                moveK.castled_rook = left_rook
                                 if bool:
                                     if not self.in_check(moveK, piece) and not self.in_check(moveL, left_rook):
                                         # append new move to rook
                                         left_rook.add_move(moveL) #MOVEL REMOVED ADD
                                         # append new move to king
                                         piece.add_move(moveK)
-                                        print(f"Generated move: {piece.__class__.__name__} from {moveK.initial} to {moveK.final} | Captured: {moveK.captured}")
+  
                                        
                                 else:
                                     # append new move to rook
@@ -438,6 +488,7 @@ class Board:
                                 final = Square(row, 6)
                                 moveK = Move(initial, final)
                                 moveK.castling = True
+                                moveK.castled_rook = right_rook
                               
                                 if bool:
                                     if not self.in_check(moveK, piece) and not self.in_check(moveR, right_rook):

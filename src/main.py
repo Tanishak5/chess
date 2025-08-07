@@ -3,7 +3,7 @@
 # main is a created object
 # the first method called is the init method
 # to define a method in init, self.attribute name = attribute name.
-
+import cProfile
 import pygame
 import sys
 import os
@@ -26,7 +26,7 @@ class Main:
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("CHESS")
         self.game = Game()
-        self.mode = "pvp"
+        self.mode = "ai"
         
 
 
@@ -36,9 +36,12 @@ class Main:
         board = self.game.board
         dragger = self.game.dragger
         theme = self.game.config
-        # ai_player = AI("white", game, board)
+        ai_player = AI("black", game, board)
         needs_redraw = True
+        display = False
 
+      
+        
 
         while True:
 
@@ -55,13 +58,17 @@ class Main:
                 dragger.update_blit(screen)        
 
             if(self.mode == "ai" and self.next == ai_player.colour):
-                # ai_player.calculate_all_moves(3, ai_player.colour, screen)
-                # return
-                # return
+                
                 colour = ai_player.colour
+                # total = ai_player.calculate_all_moves(4, colour, screen)
+                # print(total)
+                # return
+
+                cProfile.runctx("ai_player.move_piece()", globals(), locals(), sort="cumtime")
                 ai_move = ai_player.move_piece()
                 if ai_move:
-                    
+                    print(f"self.nodes : {ai_player.node_searched}, {ai_player.prune}")
+                    print(f"Pruning efficiency: {ai_player.prune / ai_player.node_searched:.2%}")
                     ai_piece, move = ai_move
                     board.move(ai_piece, move)
                     board.set_en_passant(ai_piece, move)
@@ -75,7 +82,8 @@ class Main:
 
                     
 
-            if board.checkmate(self.next):
+            if board.checkmate(self.next) and not display:
+                    check_mate_shown = True
                     font = pygame.font.SysFont("monospace", 36)
                     black = (0, 0, 0)
                     white = (255, 255, 255)
@@ -88,10 +96,12 @@ class Main:
                     pygame.draw.rect(screen, blue, back_g_rect)
                     pygame.draw.rect(screen, white, back_rect)
                     
-                    restart = Button(100, 40, green, 250, 425, "restart", white)
+                    restart = Button(100, 40, green, 175, 425, "restart", white)
                     restart.draw_image(screen)
-                    end = Button(100, 40, green, 450, 425, "End", white)
+                    end = Button(100, 40, green, 350, 425, "End", white)
                     end.draw_image(screen)
+                    show_last_state = Button(100, 40, green, 525, 425, "Screen", white)
+                    show_last_state.draw_image(screen)
 
                     text = font.render("Checkmate! ", True, black)
                     text1 = font.render(f"The Winner is: {board.winner}", True, black)
@@ -102,7 +112,7 @@ class Main:
                     screen.blit(text, text_rect)
                     screen.blit(text1, text1_rect)
                     pygame.display.update()
-
+                 
                     if restart.is_pressed(pygame.mouse.get_pos()) and event.type == pygame.MOUSEBUTTONDOWN:
                         game.reset()
                         game = self.game
@@ -115,7 +125,25 @@ class Main:
                         game.show_pieces(screen)
                         self.next = "white" if self.next == "black" else "black"
                     elif end.is_pressed(pygame.mouse.get_pos()) and event.type == pygame.MOUSEBUTTONDOWN:
-                        pygame.quit()
+                        game.show_background(screen)
+                        game.show_last_move(screen)
+                        game.show_moves(screen)
+                        game.show_pieces(screen)
+                        pygame.display.update()
+                        display = True
+                    
+                        # pygame.quit()
+                    elif show_last_state.is_pressed(pygame.mouse.get_pos()) and event.type == pygame.MOUSEBUTTONDOWN:
+                        
+                        game.show_background(screen)
+                        game.show_last_move(screen)
+                        game.show_moves(screen)
+                        game.show_pieces(screen)
+                        pygame.display.update()
+                        display = True
+                    
+                    
+               
                     
              
 

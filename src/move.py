@@ -7,9 +7,9 @@ class Move:
         self.en_passant_target = None
         self.en_passant = False
         self.castling = False
-        self.prev_piece_moved = None
-        self.move_prev = None
         self.promoted_piece = None
+        self.castled_rook = None
+        self.prev_piece_moved = False
 
 
 

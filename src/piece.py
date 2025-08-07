@@ -4,7 +4,7 @@ class Pieces:
     def __init__(self, name, colour, value, texture=None, texture_rect=None):
         self.name = name
         self.colour = colour
-        value_sign = 1 if colour == "black" else -1
+        value_sign = 1#come back here
         self.value = value_sign * value
         self.moves = []
         self.last_moved_state = None
@@ -31,25 +31,25 @@ class pawn(Pieces):
     def __init__(self, colour):
         self.dir = -1 if colour == "white" else 1
         self.en_passant = False
-        super().__init__("pawn", colour, 1.0)
+        super().__init__("pawn", colour, 100)
 
 
    
 class rook(Pieces):
     def __init__(self, colour):
-        super().__init__("rook", colour, 5.0)
+        super().__init__("rook", colour, 500)
 
 class knight(Pieces):
     def __init__(self, colour):
-        super().__init__("knight", colour, 3.0)
+        super().__init__("knight", colour, 300)
 
 class bishop(Pieces):
     def __init__(self, colour):
-        super().__init__("bishop", colour, 3.001)
+        super().__init__("bishop", colour, 300)
 
 class queen(Pieces):
     def __init__(self, colour):
-        super().__init__("queen", colour, 9.001)
+        super().__init__("queen", colour, 900)
 
 class king(Pieces):
     def __init__(self, colour):
