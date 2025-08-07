@@ -26,7 +26,7 @@ class Main:
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("CHESS")
         self.game = Game()
-        self.mode = "ai"
+        self.mode = "pvp"
         
 
 
@@ -36,7 +36,7 @@ class Main:
         board = self.game.board
         dragger = self.game.dragger
         theme = self.game.config
-        ai_player = AI("white", game, board)
+        # ai_player = AI("white", game, board)
         needs_redraw = True
 
 
@@ -134,7 +134,6 @@ class Main:
                         piece = board.squares[clicked_row][clicked_col].piece
                         if(piece.colour == self.next):
                             board.calc_moves(piece, clicked_row, clicked_col, bool=True)
-
                             dragger.save_initial(event.pos)
                             dragger.drag_piece(piece)
                             game.show_background(screen)

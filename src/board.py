@@ -13,7 +13,19 @@ class Board:
         self._add_pieces("black")
         self.winner = None
 
-    
+    def return_king_pos(self, colour):
+        king_pos = None
+        for row in range(ROWS):
+            for cols in range(COLUMNS):
+                p = self.squares[row][cols].piece
+                if isinstance(p, king) and p.colour == colour:
+                    king_pos = (row, cols)
+                    break
+            if king_pos:
+                    break
+        
+        return king_pos
+
     def _create(self):
         for row in range(ROWS):
             for cols in range(COLUMNS):
@@ -44,20 +56,44 @@ class Board:
         return abs(initial.cols - final.cols) == 2
 
     def in_check(self,move, piece):
-        temp_piece = copy.deepcopy(piece)
-        temp_board = copy.deepcopy(self)
-        temp_board.move(temp_piece, move)
+        # temp_piece = copy.deepcopy(piece)
+        # temp_board = copy.deepcopy(self)
+        # temp_board.move(temp_piece, move)
         
+        # for row in range(ROWS):
+        #     for col in range(COLUMNS):
+        #         if temp_board.squares[row][col].has_rival_piece(piece.colour):
+        #             p = temp_board.squares[row][col].piece
+        #             temp_board.calc_moves(p, row, col, bool=False)
+        #             for m in p.moves:
+        #                 if isinstance(m.final.piece, king):
+        #                     return True
+        
+        # return False
+        
+        initial_piece = self.squares[move.initial.row][move.initial.cols].piece
+        final_piece = self.squares[move.final.row][move.final.cols].piece
+        captured = move.captured
+        
+
+        self.squares[move.final.row][move.final.cols].piece = initial_piece
+        self.squares[move.initial.row][move.initial.cols].piece = None
+        king_pos = self.return_king_pos(piece.colour)
         for row in range(ROWS):
-            for col in range(COLUMNS):
-                if temp_board.squares[row][col].has_rival_piece(piece.colour):
-                    p = temp_board.squares[row][col].piece
-                    temp_board.calc_moves(p, row, col, bool=False)
+            for cols in range(COLUMNS):
+                p = self.squares[row][cols].piece
+                if p and p.colour != piece.colour:
+                    p.clear_moves()
+                    self.calc_moves(p, row, cols, False)
                     for m in p.moves:
-                        if isinstance(m.final.piece, king):
+                        if (m.final.row, m.final.cols) == king_pos:
+                            self.squares[move.initial.row][move.initial.cols].piece = initial_piece
+                            self.squares[move.final.row][move.final.cols].piece = final_piece
                             return True
-        
+        self.squares[move.initial.row][move.initial.cols].piece = initial_piece
+        self.squares[move.final.row][move.final.cols].piece = final_piece                   
         return False
+                    
       
 
 
@@ -526,6 +562,8 @@ class Board:
 
     def checkmate(self, colour):
         moves = 0
+        
+   
         for row in range(ROWS):
             for cols in range(COLUMNS):
                 p = self.squares[row][cols].piece
@@ -538,7 +576,6 @@ class Board:
             self.winner = "black" if colour == "white" else "white"
             return True
         else:
-
             return False
 
 
