@@ -14,6 +14,7 @@ class Board:
         self.winner = None
 
 
+
     def return_king_pos(self, colour):
         king_pos = None
         for row in range(ROWS):
@@ -147,31 +148,7 @@ class Board:
         self.squares[move.initial.row][move.initial.cols].piece = initial_piece
         self.squares[move.final.row][move.final.cols].piece = final_piece                
         return False
-
-       
-        # initial_piece = self.squares[move.initial.row][move.initial.cols].piece
-        # final_piece = self.squares[move.final.row][move.final.cols].piece
-        # captured = move.captured
-        
-
-        # self.squares[move.final.row][move.final.cols].piece = initial_piece
-        # self.squares[move.initial.row][move.initial.cols].piece = None
-        # king_pos = self.return_king_pos(piece.colour)
-        # for row in range(ROWS):
-        #     for cols in range(COLUMNS):
-        #         p = self.squares[row][cols].piece
-        #         if p and p.colour != piece.colour:
-        #             p.clear_moves()
-        #             self.calc_moves(p, row, cols, False)
-        #             for m in p.moves:
-        #                 if (m.final.row, m.final.cols) == king_pos:
-        #                     self.squares[move.initial.row][move.initial.cols].piece = initial_piece
-        #                     self.squares[move.final.row][move.final.cols].piece = final_piece
-        #                     return True
-        # self.squares[move.initial.row][move.initial.cols].piece = initial_piece
-        # self.squares[move.final.row][move.final.cols].piece = final_piece                   
-        # return False
-             
+     
     def check_promotion(self, piece, move):
         if move.final.row == 0 or move.final.row == 7:
             self.squares[move.final.row][move.final.cols].piece = queen(piece.colour)

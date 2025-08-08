@@ -60,15 +60,11 @@ class Main:
             if(self.mode == "ai" and self.next == ai_player.colour):
                 
                 colour = ai_player.colour
-                # total = ai_player.calculate_all_moves(4, colour, screen)
-                # print(total)
-                # return
-
-                cProfile.runctx("ai_player.move_piece()", globals(), locals(), sort="cumtime")
+                # cProfile.runctx("ai_player.move_piece()", globals(), locals(), sort="cumtime")
                 ai_move = ai_player.move_piece()
                 if ai_move:
                     print(f"self.nodes : {ai_player.node_searched}, {ai_player.prune}")
-                    print(f"Pruning efficiency: {ai_player.prune / ai_player.node_searched:.2%}")
+                    print(f"Pruning efficiency: {ai_player.prune / ai_player.node_searched}")
                     ai_piece, move = ai_move
                     board.move(ai_piece, move)
                     board.set_en_passant(ai_piece, move)
